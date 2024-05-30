@@ -1,0 +1,53 @@
+import RPi.GPIO as GPIO
+import time
+
+# Define GPIO pins
+MOTION_SENSOR_PIN = 18
+FINGERPRINT_SENSOR_PIN = 23
+LED_PIN = 24
+
+# Initialize GPIO
+GPIO.setmode(GPIO.BCM)
+GPIO.setup(MOTION_SENSOR_PIN, GPIO.IN)
+GPIO.setup(FINGERPRINT_SENSOR_PIN, GPIO.IN)
+GPIO.setup(LED_PIN, GPIO.OUT)
+
+# Function to detect motion
+def detect_motion():
+    if GPIO.input(MOTION_SENSOR_PIN):
+        return True
+    else:
+        return False
+
+# Function to authenticate fingerprint
+def authenticate_fingerprint():
+    if GPIO.input(FINGERPRINT_SENSOR_PIN):
+        return True
+    else:
+        return False
+
+# Function to control LED
+def control_led(status):
+    GPIO.output(LED_PIN, status)
+
+# Main function
+def main():
+    try:
+        while True:
+            # Check for motion
+            if detect_motion():
+                print("Motion detected!")
+                # Authenticate fingerprint
+                if authenticate_fingerprint():
+                    print("Fingerprint authenticated. Access granted.")
+                    control_led(True)
+                    time.sleep(5)  # LED on for 5 seconds
+                    control_led(False)
+                else:
+                    print("Unauthorized access detected!")
+            time.sleep(0.5)  # Check every 0.5 seconds
+    except KeyboardInterrupt:
+        GPIO.cleanup()
+
+if __name__ == "__main__":
+    main()
