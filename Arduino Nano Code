@@ -1,0 +1,52 @@
+#include <SoftwareSerial.h>
+#include <Adafruit_Fingerprint.h>
+
+SoftwareSerial mySerial(2, 3); // RX, TX for fingerprint sensor
+Adafruit_Fingerprint finger = Adafruit_Fingerprint(&mySerial);
+
+const int motionSensor1Pin = 4; // Motion sensor 1
+const int motionSensor2Pin = 5; // Motion sensor 2
+
+void setup() {
+  pinMode(motionSensor1Pin, INPUT);
+  pinMode(motionSensor2Pin, INPUT);
+  
+  Serial.begin(9600);
+  finger.begin(57600);
+  
+  if (finger.verifyPassword()) {
+    Serial.println("Found fingerprint sensor!");
+  } else {
+    Serial.println("Did not find fingerprint sensor :(");
+    while (1) { delay(1); }
+  }
+}
+
+void loop() {
+  int motion1 = digitalRead(motionSensor1Pin);
+  int motion2 = digitalRead(motionSensor2Pin);
+  
+  if (motion1 == HIGH) {
+    Serial.println("Motion detected by sensor 1!");
+  }
+  
+  if (motion2 == HIGH) {
+    Serial.println("Motion detected by sensor 2!");
+  }
+  
+  // Check for a fingerprint match
+  uint8_t p = finger.getImage();
+  if (p == FINGERPRINT_OK) {
+    p = finger.image2Tz();
+    if (p == FINGERPRINT_OK) {
+      p = finger.fingerFastSearch();
+      if (p == FINGERPRINT_OK) {
+        Serial.println("Fingerprint matched!");
+      } else {
+        Serial.println("Fingerprint did not match.");
+      }
+    }
+  }
+  
+  delay(1000); // Delay to avoid spamming the serial output
+}
